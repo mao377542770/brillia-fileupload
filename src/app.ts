@@ -1,7 +1,9 @@
 import dotenv from "dotenv"
-import { FilesController } from "./controller/files.controller"
+import { CommonKarteInfoController } from "./controller/commonKarteInfo.controller"
 import readLine from "readline"
 import { testController } from "./controller/test.controller"
+import { ContactController } from "./controller/contact.controller"
+import { RepairInformationController } from "./controller/repairInformation.controller"
 
 dotenv.config()
 
@@ -11,12 +13,11 @@ export default class App {
   }
 
   async init() {
-    const fileCtl = new FilesController()
-
     console.log(`
     移行対象をご選択ください:
       1.共用部住戸カルテ
       2.コンタクト情報
+      3.管理組合補修情報
     `)
 
     const rl = readLine.createInterface({
@@ -28,10 +29,13 @@ export default class App {
     rl.on("line", async str => {
       if (str === "1") {
         console.log("===共用部住戸カルテ移行開始===")
-        await fileCtl.initCommonKarteInfo()
+        await new CommonKarteInfoController().runBatch()
       } else if (str == "2") {
         console.log("===コンタクト情報移行開始===")
-        await fileCtl.initContact()
+        await new ContactController().runBatch()
+      } else if (str == "3") {
+        console.log("===管理組合補修情報移行開始===")
+        await new RepairInformationController().runBatch()
       } else {
         await new testController().createTestFile()
       }

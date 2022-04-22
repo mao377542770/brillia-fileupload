@@ -1,5 +1,6 @@
 export interface CommonKarteInfo {
   Id: string
+  SFDCId: string
   Pid__c: string
   ExtId__c: string
   Project__c: string

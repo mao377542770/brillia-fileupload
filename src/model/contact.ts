@@ -2,7 +2,7 @@ export interface Contact {
   [key: string]: any
   Id: string
   SFDCId: string
-  ContactId: string
+  ContactNo__c: string
   PID: string
   CustomerCode: string
   ProjectCode: string
@@ -42,4 +42,6 @@ export interface Contact {
   file33: string
   file34: string
   file35: string
+  errorMsg: string
+  hasError: 0 | 1 | undefined
 }

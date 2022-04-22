@@ -1,48 +1,42 @@
 import fs from "fs"
 import { CommonKarteInfo } from "../model/commonKarteInfo"
-import { SfdcService } from "../service/sfdc.service"
-import dotenv from "dotenv"
 
-import { BaseController } from "./base.controller"
+import dotenv from "dotenv"
+import { SfdcService } from "../service/sfdc.service"
+import { BatchBaseController } from "./base.controller"
 import { Tools } from "../service/tools.service"
-import { MsSql } from "../service/ms.service"
+
 import { Contact } from "../model/contact"
-import { ContactInfo } from "src/model/opportunityHistory__c"
+import { ContactInfo } from "../model/opportunityHistory__c"
 
 dotenv.config()
 
-export class FilesController implements BaseController {
-  // 毎回同時に処理するレコード数
-  private static BATCHSIZE = 10
+// 共用部住戸カルテファイル移行コントロール
+export class CommonKarteInfoController extends BatchBaseController {
+  tableName: string
   private static KARTE_ROOT_PATH = process.env.KARTE_ROOT_PATH
   private static CONTACT_ROOT_PATH = process.env.CONTACT_ROOT_PATH
-  private mssql: MsSql
-  private sfdc: SfdcService
 
   constructor() {
-    this.mssql = new MsSql()
-    this.sfdc = new SfdcService()
+    super()
+    this.tableName = "CommonKarteInfo"
   }
 
   /**
    * 共用部住戸カルテを移行する
    * @returns
    */
-  public async initCommonKarteInfo() {
-    const res = await this.mssql.connect()
-
+  public async init() {
     const karteRes = await this.mssql.query<CommonKarteInfo>(
-      "SELECT TOP 15 * FROM CommonKarteInfo WHERE hasError is null"
+      `SELECT TOP 15 * FROM ${this.tableName} WHERE hasError is null`
     )
 
     if (!karteRes || karteRes.length === 0) return
-    const batchList = Tools.chunk<CommonKarteInfo>(karteRes, FilesController.BATCHSIZE)
+    const batchList = Tools.chunk<CommonKarteInfo>(karteRes, this.BATCHSIZE)
 
     for await (const batch of batchList) {
       await this.executeUpload(batch)
     }
-
-    this.mssql.disConnect()
   }
 
   async executeUpload(records: CommonKarteInfo[]) {
@@ -63,6 +57,7 @@ export class FilesController implements BaseController {
       const targetObj = targetMap.get("" + rd.ExtId__c)
       if (targetObj) {
         rd.Id = targetObj.Id
+        rd.SFDCId = targetObj.Id
         excuteList.push(this.uploadFileToCommonKarteInfo(rd))
       } else {
         rd.hasError = 1
@@ -92,7 +87,7 @@ export class FilesController implements BaseController {
     if (filePathList.length !== 0) {
       for await (const fileTgPath of filePathList) {
         // ファイルの読み込み
-        const filePath = FilesController.KARTE_ROOT_PATH + fileTgPath
+        const filePath = CommonKarteInfoController.KARTE_ROOT_PATH + fileTgPath
         const filename = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
         const isExist = await fs.existsSync(filePath)
         if (!isExist) {
@@ -166,7 +161,7 @@ export class FilesController implements BaseController {
     const contactRes = await this.mssql.query<Contact>("SELECT TOP 20 * FROM Contact WHERE hasError is null")
 
     if (!contactRes || contactRes.length === 0) return
-    const batchList = Tools.chunk<Contact>(contactRes, FilesController.BATCHSIZE)
+    const batchList = Tools.chunk<Contact>(contactRes, this.BATCHSIZE)
 
     for await (const batch of batchList) {
       await this.executeUploadContact(batch)
@@ -186,9 +181,9 @@ export class FilesController implements BaseController {
 
     for (const ct of records) {
       if (ct.Type === "手段") {
-        ngList.push(ct.ContactId)
+        ngList.push(ct.ContactNo__c)
       } else {
-        oppHisList.push(ct.ContactId)
+        oppHisList.push(ct.ContactNo__c)
       }
     }
 
@@ -218,9 +213,10 @@ export class FilesController implements BaseController {
 
     // レコードIDを設定
     for await (const rd of records) {
-      const targetObj = targetMap.get(Number(rd.ContactId))
+      const targetObj = targetMap.get(Number(rd.ContactNo__c))
       if (targetObj) {
         rd.Id = targetObj.Id
+        rd.SFDCId = targetObj.Id
         updateList.push(this.uploadFileToContact(rd))
       } else {
         rd.hasError = 1
@@ -255,12 +251,12 @@ export class FilesController implements BaseController {
       for await (const fileTgPath of filePathList) {
         if (!fileTgPath) continue
         // ファイルの読み込み
-        const filePath = FilesController.CONTACT_ROOT_PATH + fileTgPath
+        const filePath = CommonKarteInfoController.CONTACT_ROOT_PATH + fileTgPath
         const filename = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
         const isExist = await fs.existsSync(filePath)
         if (!isExist) {
           targetRecord.hasError = 0
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactId}]:「${filePath}」ファイルが存在しない`
+          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:「${filePath}」ファイルが存在しない`
           console.error(targetRecord.errorMsg)
           break
         }
@@ -280,7 +276,7 @@ export class FilesController implements BaseController {
 
         if (!uploadRes || !uploadRes.success) {
           targetRecord.hasError = 1
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactId}]:ファイルアップロード失敗:\n${error}`
+          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
           console.error(uploadRes)
           console.error(targetRecord.errorMsg)
           break
@@ -289,7 +285,7 @@ export class FilesController implements BaseController {
         const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id)
         if (!linkRes || !linkRes.success) {
           targetRecord.hasError = 1
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactId}]:ファイルアップロード失敗`
+          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗`
           console.error(uploadRes)
           console.error(targetRecord.errorMsg)
           break
@@ -314,7 +310,7 @@ export class FilesController implements BaseController {
     for (const ckInfo of records) {
       updateSql += `UPDATE Contact SET hasError = ${ckInfo.hasError} ${
         ckInfo.errorMsg ? `,errorMsg = '${ckInfo.errorMsg}'` : ""
-      } WHERE ContactId = '${ckInfo.ContactId}';\n`
+      } WHERE ContactNo__c = '${ckInfo.ContactNo__c}';\n`
     }
     await this.mssql.query(updateSql)
   }
