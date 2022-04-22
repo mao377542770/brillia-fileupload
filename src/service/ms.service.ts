@@ -1,4 +1,3 @@
-import { columns } from "mssql"
 import { Connection, Request } from "tedious"
 
 export class MsSql {

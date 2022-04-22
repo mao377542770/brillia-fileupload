@@ -15,7 +15,7 @@ export class SfdcService {
       clientSecret: process.env.SFDC_CLIENTSECRET,
       redirectUri: process.env.SFDC_REDIRECTURI
     },
-    instanceUrl: "https://tatemono--dev.my.salesforce.com",
+    instanceUrl: process.env.SFDC_INSTANCEURL ? process.env.SFDC_INSTANCEURL : "",
     accessToken: "",
     refreshToken: ""
   }
@@ -49,24 +49,6 @@ export class SfdcService {
         this.authConfig.accessToken = SfdcService.accessToken
       })
     }
-  }
-
-  public async getData(): Promise<any> {
-    if (!SfdcService.accessToken) {
-      await this.login()
-    }
-    const query = "SELECT Id, Name ,Account.Name, ResponseKinds__c FROM Opportunity"
-
-    const promise = new Promise<any>(resolve => {
-      SfdcService.conn.query(query, undefined, (_err, _result) => {
-        console.log("total : " + _result.totalSize)
-        console.log("fetched : " + _result.records.length)
-        console.log(_result.records)
-        resolve(_result)
-      })
-    })
-
-    return promise
   }
 
   public async query<T>(query: string): Promise<QueryResult<T>> {
