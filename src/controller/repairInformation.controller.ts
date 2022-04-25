@@ -87,7 +87,7 @@ export class RepairInformationController extends BatchBaseController {
         const filename = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
         const isExist = await fs.existsSync(filePath)
         if (!isExist) {
-          targetRecord.hasError = 0
+          targetRecord.hasError = 1
           targetRecord.errorMsg = `[${targetRecord.ExtId__c}]:「${filePath}」ファイルが存在しない`
           console.error(targetRecord.errorMsg)
           break
