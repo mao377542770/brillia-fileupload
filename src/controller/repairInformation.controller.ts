@@ -11,7 +11,7 @@ dotenv.config()
 //管理組合補修情報ファイル移行コントロール
 export class RepairInformationController extends BatchBaseController {
   tableName: string
-  private ROOT_PATH = process.env.KARTE_ROOT_PATH
+  private ROOT_PATH = process.env.REPAIR_ROOT_PATH
 
   constructor() {
     super()
