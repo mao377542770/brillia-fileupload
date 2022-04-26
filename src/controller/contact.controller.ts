@@ -14,6 +14,7 @@ dotenv.config()
 export class ContactController extends BatchBaseController {
   tableName: string
   private static CONTACT_ROOT_PATH = process.env.CONTACT_ROOT_PATH
+  private SQL = process.env.CONTACT_SQL ? process.env.CONTACT_SQL : ""
 
   constructor() {
     super()
@@ -25,7 +26,7 @@ export class ContactController extends BatchBaseController {
    * @returns
    */
   public async init() {
-    const contactRes = await this.mssql.query<Contact>(`SELECT TOP 20 * FROM ${this.tableName} WHERE hasError is null`)
+    const contactRes = await this.mssql.query<Contact>(this.SQL)
 
     if (!contactRes || contactRes.length === 0) return
     const batchList = Tools.chunk<Contact>(contactRes, this.BATCHSIZE)
