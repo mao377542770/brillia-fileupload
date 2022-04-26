@@ -12,6 +12,7 @@ dotenv.config()
 export class RepairInformationController extends BatchBaseController {
   tableName: string
   private ROOT_PATH = process.env.REPAIR_ROOT_PATH
+  private SQL = process.env.REPAIR_SQL ? process.env.REPAIR_SQL : ""
 
   constructor() {
     super()
@@ -23,9 +24,7 @@ export class RepairInformationController extends BatchBaseController {
    * @returns
    */
   public async init() {
-    const targetRes = await this.mssql.query<RepairInformation>(
-      `SELECT TOP 15 * FROM ${this.tableName} WHERE hasError is null`
-    )
+    const targetRes = await this.mssql.query<RepairInformation>(this.SQL)
 
     if (!targetRes || targetRes.length === 0) return
     const batchList = Tools.chunk<RepairInformation>(targetRes, this.BATCHSIZE)

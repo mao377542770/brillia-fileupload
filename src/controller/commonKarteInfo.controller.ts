@@ -16,6 +16,7 @@ export class CommonKarteInfoController extends BatchBaseController {
   tableName: string
   private static KARTE_ROOT_PATH = process.env.KARTE_ROOT_PATH
   private static CONTACT_ROOT_PATH = process.env.CONTACT_ROOT_PATH
+  private SQL = process.env.KARTE_SQL ? process.env.KARTE_SQL : ""
 
   constructor() {
     super()
@@ -27,9 +28,7 @@ export class CommonKarteInfoController extends BatchBaseController {
    * @returns
    */
   public async init() {
-    const karteRes = await this.mssql.query<CommonKarteInfo>(
-      `SELECT TOP 15 * FROM ${this.tableName} WHERE hasError is null`
-    )
+    const karteRes = await this.mssql.query<CommonKarteInfo>(this.SQL)
 
     if (!karteRes || karteRes.length === 0) return
     const batchList = Tools.chunk<CommonKarteInfo>(karteRes, this.BATCHSIZE)
