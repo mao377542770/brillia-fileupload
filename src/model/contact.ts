@@ -6,7 +6,10 @@ export interface Contact {
   PID: string
   CustomerCode: string
   ProjectCode: string
-  Type: string
+  Type: string //Type
+  Stage__c: string //コンタクト種別（小項目）
+  ContactType: string //コンタクト区分
+  isMail: Boolean
   file1: string
   file2: string
   file3: string

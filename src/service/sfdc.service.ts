@@ -285,7 +285,7 @@ export class SfdcService {
   }
 
   // ファイルをオブジェクトにリンクする
-  async linkFileToObj(contentVersionId: string, objId: string): Promise<RecordResult> {
+  async linkFileToObj(contentVersionId: string, objId: string, ShareType?: string): Promise<RecordResult> {
     const connection = SfdcService.conn
 
     const contentDocument = await connection
@@ -295,10 +295,20 @@ export class SfdcService {
       }>("ContentVersion")
       .retrieve(contentVersionId)
 
-    return connection.sobject<any>("ContentDocumentLink").create({
-      ContentDocumentId: contentDocument.ContentDocumentId,
-      LinkedEntityId: objId,
-      ShareType: "I"
+    return new Promise((resolve, reject) => {
+      connection
+        .sobject<any>("ContentDocumentLink")
+        .create({
+          ContentDocumentId: contentDocument.ContentDocumentId,
+          LinkedEntityId: objId,
+          ShareType: ShareType ? ShareType : "I"
+        })
+        .then(recordResult => {
+          resolve(recordResult)
+        })
+        .catch(error => {
+          reject(error)
+        })
     })
   }
 }

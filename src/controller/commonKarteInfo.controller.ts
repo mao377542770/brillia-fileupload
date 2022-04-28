@@ -7,7 +7,7 @@ import { BatchBaseController } from "./base.controller"
 import { Tools } from "../service/tools.service"
 
 import { Contact } from "../model/contact"
-import { ContactInfo } from "../model/opportunityHistory__c"
+import { ContactInfo } from "../model/contactInfo"
 
 dotenv.config()
 
@@ -117,10 +117,14 @@ export class CommonKarteInfoController extends BatchBaseController {
           break
         }
 
-        const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id)
-        if (!linkRes || !linkRes.success) {
+        let linkRes
+        linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id).catch(err => {
+          error = err
+          console.error(err)
+        })
+        if (!linkRes || !linkRes.success || error) {
           targetRecord.hasError = 1
-          targetRecord.errorMsg = `[管理組合内部PID ${targetRecord.ExtId__c}]:ファイルアップロード失敗`
+          targetRecord.errorMsg = `[管理組合内部PID ${targetRecord.ExtId__c}]:ファイルアップロード失敗${error}`
           console.error(uploadRes)
           console.error(targetRecord.errorMsg)
           break

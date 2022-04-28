@@ -6,7 +6,7 @@ import { BatchBaseController } from "./base.controller"
 import { Tools } from "../service/tools.service"
 
 import { Contact } from "../model/contact"
-import { ContactInfo } from "../model/opportunityHistory__c"
+import { ContactInfo } from "../model/contactInfo"
 
 dotenv.config()
 
@@ -42,18 +42,39 @@ export class ContactController extends BatchBaseController {
 
     // 反響履歴IDを取得する
     const oppHisList = []
+    // メールメッセージID
+    const emailList = []
     // 折衝情報Idを取得する
     const ngList = []
 
     for (const ct of records) {
-      if (ct.Type === "手段") {
-        ngList.push(ct.ContactNo__c)
+      // ①コンタクト区分が「メール」の場合 ⇒ メールメッセージに移行
+      // コンタクト区分が「メール」でない場合:
+      //   ②コンタクト種別（小項目）が「折衝履歴」「契約進捗」⇒ 折衝情報に移行
+      //   ③コンタクト種別（小項目）が それ以外 ⇒ 反響履歴に移行
+      if (ct.ContactType === "メール") {
+        emailList.push(ct.ContactNo__c)
       } else {
-        oppHisList.push(ct.ContactNo__c)
+        if (ct.Stage__c === "折衝履歴" || ct.Stage__c === "契約進捗") {
+          ngList.push(ct.ContactNo__c)
+        } else {
+          oppHisList.push(ct.ContactNo__c)
+        }
       }
     }
 
     const targetMap = new Map<number, ContactInfo>()
+
+    // メールメッセージ
+    if (emailList.length > 0) {
+      const res = await this.sfdc.query<ContactInfo>(
+        `SELECT Id,ExtId__c FROM EmailMessage WHERE ExtId__c IN ${SfdcService.getInSql(emailList)}`
+      )
+      for (const resObj of res.records) {
+        resObj.ContactNo__c = Number(resObj.ExtId__c)
+        targetMap.set(resObj.ContactNo__c, resObj)
+      }
+    }
 
     // 反響履歴
     if (oppHisList.length > 0) {
@@ -83,6 +104,9 @@ export class ContactController extends BatchBaseController {
       if (targetObj) {
         rd.Id = targetObj.Id
         rd.SFDCId = targetObj.Id
+        if (targetObj.ExtId__c) {
+          rd.isMail = true
+        }
         updateList.push(this.uploadFileToContact(rd))
       } else {
         rd.hasError = 1
@@ -140,7 +164,7 @@ export class ContactController extends BatchBaseController {
           console.error(err)
         })
 
-        if (!uploadRes || !uploadRes.success) {
+        if (!uploadRes || !uploadRes.success || error) {
           targetRecord.hasError = 1
           targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
           console.error(uploadRes)
@@ -148,10 +172,19 @@ export class ContactController extends BatchBaseController {
           break
         }
 
-        const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id)
-        if (!linkRes || !linkRes.success) {
+        let linkRes
+        let ShareType
+        if (targetRecord.isMail) {
+          ShareType = "V"
+        }
+        linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id, ShareType).catch(err => {
+          error = err
+          console.error(err)
+        })
+
+        if (!linkRes || !linkRes.success || error) {
           targetRecord.hasError = 1
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗`
+          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
           console.error(uploadRes)
           console.error(targetRecord.errorMsg)
           break

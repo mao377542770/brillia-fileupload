@@ -113,10 +113,13 @@ export class RepairInformationController extends BatchBaseController {
           break
         }
 
-        const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id)
-        if (!linkRes || !linkRes.success) {
+        const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id).catch(err => {
+          error = err
+          console.error(err)
+        })
+        if (!linkRes || !linkRes.success || error) {
           targetRecord.hasError = 1
-          targetRecord.errorMsg = `[${targetRecord.ExtId__c}]:ファイルアップロード失敗`
+          targetRecord.errorMsg = `[${targetRecord.ExtId__c}]:ファイルアップロード失敗${error}`
           console.error(uploadRes)
           console.error(targetRecord.errorMsg)
           break
