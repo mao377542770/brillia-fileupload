@@ -207,6 +207,9 @@ export class ContactController extends BatchBaseController {
   async feedBackToDB(records: Contact[]) {
     let updateSql = ""
     for (const ckInfo of records) {
+      if (ckInfo.errorMsg) {
+        ckInfo.errorMsg = ckInfo.errorMsg.replaceAll("'", "''")
+      }
       updateSql += `UPDATE Contact SET hasError = ${ckInfo.hasError}${
         ckInfo.errorMsg ? `,errorMsg = '${ckInfo.errorMsg}'` : ""
       }${ckInfo.SFDCId ? `,SFDCId = '${ckInfo.SFDCId}'` : ""} WHERE ContactNo__c = '${ckInfo.ContactNo__c}';\n`
