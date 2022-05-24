@@ -4,6 +4,7 @@ import readLine from "readline"
 import { testController } from "./controller/test.controller"
 import { ContactController } from "./controller/contact.controller"
 import { RepairInformationController } from "./controller/repairInformation.controller"
+import { FleekDriveController } from "./controller/fleekDrive.controller"
 
 dotenv.config()
 
@@ -18,6 +19,7 @@ export default class App {
       1.共用部住戸カルテ
       2.コンタクト情報
       3.管理組合補修情報
+      4.FleekDriveファイル
     `)
 
     const rl = readLine.createInterface({
@@ -36,8 +38,11 @@ export default class App {
       } else if (str == "3") {
         console.log("===管理組合補修情報移行開始===")
         await new RepairInformationController().runBatch()
+      } else if (str == "4") {
+        console.log("===FleekDriveファイル移行開始===")
+        await new FleekDriveController().runBatch()
       } else {
-        await new testController().createTestFile()
+        await new testController().createTestFile3()
       }
       rl.close()
     })

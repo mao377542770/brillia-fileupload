@@ -152,14 +152,13 @@ export class ContactController extends BatchBaseController {
         }
         const buffer = await fs.readFileSync(filePath)
         // ファイルをSFDCにアップロード
-        const sfdc = new SfdcService()
         const contentVersion = {
           Title: filename,
           PathOnClient: filename
         }
 
         let error
-        const uploadRes = await sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
+        const uploadRes = await this.sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
           error = err
           console.error(err)
         })
@@ -177,7 +176,7 @@ export class ContactController extends BatchBaseController {
         if (targetRecord.isMail) {
           ShareType = "V"
         }
-        linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id, ShareType).catch(err => {
+        linkRes = await this.sfdc.linkFileToObj(uploadRes.id, targetRecord.Id, ShareType).catch(err => {
           error = err
           console.error(err)
         })

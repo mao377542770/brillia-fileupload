@@ -93,14 +93,13 @@ export class RepairInformationController extends BatchBaseController {
         }
         const buffer = await fs.readFileSync(filePath)
         // ファイルをSFDCにアップロード
-        const sfdc = new SfdcService()
         const contentVersion = {
           Title: filename,
           PathOnClient: filename
         }
 
         let error
-        const uploadRes = await sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
+        const uploadRes = await this.sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
           error = err
           console.error(err)
         })
@@ -113,7 +112,7 @@ export class RepairInformationController extends BatchBaseController {
           break
         }
 
-        const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id).catch(err => {
+        const linkRes = await this.sfdc.linkFileToObj(uploadRes.id, targetRecord.Id).catch(err => {
           error = err
           console.error(err)
         })

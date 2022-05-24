@@ -265,14 +265,13 @@ export class CommonKarteInfoController extends BatchBaseController {
         }
         const buffer = await fs.readFileSync(filePath)
         // ファイルをSFDCにアップロード
-        const sfdc = new SfdcService()
         const contentVersion = {
           Title: filename,
           PathOnClient: filename
         }
 
         let error
-        const uploadRes = await sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
+        const uploadRes = await this.sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
           error = err
           console.error(err)
         })
@@ -285,7 +284,7 @@ export class CommonKarteInfoController extends BatchBaseController {
           break
         }
 
-        const linkRes = await sfdc.linkFileToObj(uploadRes.id, targetRecord.Id)
+        const linkRes = await this.sfdc.linkFileToObj(uploadRes.id, targetRecord.Id)
         if (!linkRes || !linkRes.success) {
           targetRecord.hasError = 1
           targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗`
