@@ -31,7 +31,7 @@ export abstract class BatchBaseController {
     let updateSql = ""
     for (const ckInfo of records) {
       updateSql += `UPDATE ${this.tableName} SET hasError = ${ckInfo.hasError}
-      ${ckInfo.errorMsg ? `,errorMsg = '${ckInfo.errorMsg}'` : ""}
+      ${ckInfo.errorMsg ? `,errorMsg = N'${ckInfo.errorMsg}'` : ""}
       ${ckInfo.SFDCId ? `,SFDCId = '${ckInfo.SFDCId}'` : ""}
        WHERE ExtId__c = '${ckInfo.ExtId__c}';\n`
     }

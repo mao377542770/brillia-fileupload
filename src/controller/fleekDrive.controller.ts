@@ -272,9 +272,9 @@ export class FleekDriveController extends BatchBaseController {
   async feedBackToDB(records: Account[]) {
     let updateSql = ""
     for (const ckInfo of records) {
-      updateSql += `UPDATE Account SET hasError = ${ckInfo.hasError} ${
-        ckInfo.errorMsg ? `,errorMsg = '${ckInfo.errorMsg}'` : ""
-      } WHERE Pid = '${ckInfo.Pid}';\n`
+      updateSql += `UPDATE Account SET hasError = ${ckInfo.hasError}
+      ${ckInfo.errorMsg ? `,errorMsg = N'${ckInfo.errorMsg}'` : ""}
+      ${ckInfo.SFDCId ? `,SFDCId = '${ckInfo.SFDCId}'` : ""} WHERE Pid = '${ckInfo.Pid}';\n`
     }
     await this.mssql.query(updateSql)
   }
