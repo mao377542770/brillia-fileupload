@@ -15,7 +15,9 @@ const MajorItemMp = {
   "PJ広告宣伝物・販売センター関連": "広告宣伝物・販売センター関連",
   PJ会議資料: "会議資料",
   PJ事業推進関係: "事業推進関係",
-  PJ週報: "週報"
+  PJ週報: "週報",
+  "旧e-Brilliaファイル": "旧e-Brilliaファイル",
+  情報共有: "情報共有"
 }
 
 //中項目フォルダマッピング表
@@ -33,7 +35,15 @@ const MediumItemMp = {
   "PJ事業推進-PJ承継書類関係": "承継書類関係",
   "PJ事業推進-その他事業推進関係": "その他事業推進関係",
   "PJ事業推進-建築関係": "建築関係",
-  "PJ事業推進-土地・許認可関係": "土地・許認可関係"
+  "PJ事業推進-土地・許認可関係": "土地・許認可関係",
+  "情報共有-Web報告": "Web報告",
+  "情報共有-マニュアル関係": "マニュアル関係",
+  "情報共有-各種調査報告": "各種調査報告",
+  "情報共有-勉強会・報告会資料": "勉強会・報告会資料",
+  "情報共有-特販チーム週報": "特販チーム週報",
+  "情報共有-営業推進グループ週報": "営業推進グループ週報",
+  "情報共有-週報集計": "週報集計",
+  "情報共有-週報一括印刷用Excel": "週報一括印刷用Excel"
 }
 
 //小項目フォルダマッピング表
@@ -83,7 +93,7 @@ const SmallItemMp = {
     "アフターサービス業務引継チェックリスト（最終版）",
   "PJ事業推進-PJ承継書類関係-承継書類（個人情報）": "承継書類（個人情報）",
   "PJ事業推進-PJ承継書類関係-承継書類（個人情報以外）": "承継書類（個人情報以外）",
-  "PJその他事業推進関係-その他事業推進関係": "フリースペース",
+  "PJその他事業推進関係-その他事業推進関係": "その他事業推進関係",
   "PJ建築関係-簡易取扱説明書": "取扱説明書",
   "PJ建築関係-建築レポート": "建築レポート",
   "PJ建築関係-竣工写真": "竣工写真",
@@ -101,10 +111,15 @@ const SmallItemMp = {
   "PJ土地・許認可関係-謄本": "謄本"
 }
 
+// 共通フォルダ
+const commPath = ["旧e-Brilliaファイル", "情報共有"]
+
 export class FleekDriveController extends BatchBaseController {
   private static PROJECT_ROOT_PATH = process.env.PROJECT_ROOT_PATH
 
   private SQL = process.env.PROJECT_SQL ? process.env.PROJECT_SQL : ""
+  private comPanySpaceId = process.env.FLEEK_DRIVER_SPACE_ID
+
   private fleekService: FleekDriveService
 
   //スペースのマップ情報を作成する
@@ -176,8 +191,15 @@ export class FleekDriveController extends BatchBaseController {
     const filePathList = []
     filePathList.push(targetRecord.File)
 
-    // 関連親フォルダーを取得する
-    const parentSpaceId = await this.fleekService.getRelatedListBySfdcId(targetRecord.Id)
+    let parentSpaceId
+    //全社共通フォルダの判断
+    if (commPath.includes(targetRecord.MajorItem)) {
+      parentSpaceId = this.comPanySpaceId
+    } else {
+      // 関連親フォルダーを取得する
+      parentSpaceId = await this.fleekService.getRelatedListBySfdcId(targetRecord.Id)
+    }
+
     if (!parentSpaceId) {
       targetRecord.hasError = 1
       targetRecord.errorMsg = `[プロジェクトコード ${targetRecord.ProjectCode}]:」該当レコードの関連フォルダーが存在しない`
