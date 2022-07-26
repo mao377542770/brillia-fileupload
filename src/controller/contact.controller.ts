@@ -127,14 +127,20 @@ export class ContactController extends BatchBaseController {
    */
   async uploadFileToContact(targetRecord: Contact): Promise<Contact> {
     const filePathList = []
+    let filesStr = ""
     for (let i = 1; i <= 35; i++) {
       const filedName = `file${i}`
       if (targetRecord[filedName]) {
-        // 先ず「?/」を[?\]に変更
-        let fileStr = targetRecord[filedName].replaceAll("?/", "?\\")
-        const fileList = fileStr.split("?\\")
-        filePathList.push(...fileList)
+        filesStr += targetRecord[filedName]
       }
+    }
+
+    if (filesStr.length > 0) {
+      let str = filesStr.replaceAll('"', "")
+      // 先ず「?/」を[?\]に変更
+      let fileStr = str.replaceAll("?/", "?\\")
+      const fileList = fileStr.split("?\\")
+      filePathList.push(...fileList)
     }
 
     if (filePathList.length !== 0) {
