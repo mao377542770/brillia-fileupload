@@ -23,7 +23,7 @@ const MajorItemMp = {
 //中項目フォルダマッピング表
 const MediumItemMp = {
   "PJアンケート関係-アンケート関係": "アンケート関係",
-  "PJアンケート関係-その他アンケート": "その他アンケート",
+  "PJアンケート関係-その他アンケート": "その他",
   "PJ販売関係-その他": "その他",
   "PJ販売関係-書類関連": "書類関連",
   "PJ広告・販売-その他": "その他",
@@ -35,7 +35,7 @@ const MediumItemMp = {
   "PJ事業推進-PJ承継書類関係": "承継書類関係",
   "PJ事業推進-その他事業推進関係": "その他事業推進関係",
   "PJ事業推進-建築関係": "建築関係",
-  "PJ事業推進-土地・許認可関係": "土地・許認可関係",
+  "PJ事業推進-土地・許認可関係": "土地建物・許認可関係",
   "情報共有-Web報告": "Web報告",
   "情報共有-マニュアル関係": "マニュアル関係",
   "情報共有-各種調査報告": "各種調査報告",
@@ -43,7 +43,14 @@ const MediumItemMp = {
   "情報共有-特販チーム週報": "特販チーム週報",
   "情報共有-営業推進グループ週報": "営業推進グループ週報",
   "情報共有-週報集計": "週報集計",
-  "情報共有-週報一括印刷用Excel": "週報一括印刷用Excel"
+  "情報共有-週報一括印刷用Excel": "週報一括印刷用Excel",
+  "旧e-Bri定期補修アンケート": "定期補修アンケート",
+  "旧e-Bri広告関連": "広告関連",
+  "旧e-Bri旧掲示板": "旧掲示板",
+  "旧e-Bri情報共有ミーティング資料": "情報共有ミーティング資料",
+  "旧e-Bri認定中古マンション": "認定中古マンション",
+  "旧e-Bri事業推進マニュアル（4社共有情報）": "事業推進マニュアル（4社共有情報）",
+  "旧e-Bri事業推進上の問題点（東建・販社）": "事業推進上の問題点（東建・販社）"
 }
 
 //小項目フォルダマッピング表
@@ -52,13 +59,13 @@ const SmallItemMp = {
   "PJアンケート関係-関係者確認会アンケート": "関係者確認会アンケート",
   "PJアンケート関係-内覧会アンケート": "内覧会アンケート",
   "PJその他アンケート-その他アンケート": "その他アンケート",
-  "PJ販売関係-その他-その他販売関係": "その他お客様への提示資料",
+  "PJ販売関係-その他-その他販売関係": "入居時お客様配布資料",
   "PJ書類関連-アフターサービス規準": "アフターサービス規準",
-  "PJ書類関連-その他お客様への提示資料": "その他お客様への提示資料",
+  "PJ書類関連-その他お客様への提示資料": "変更事項等確認のお知らせ",
   "PJ書類関連-管理に関する説明書（長計含む）": "管理に関する説明書（長計含む）",
   "PJ書類関連-管理規約（修正含む）": "管理規約（修正含む）",
   "PJ書類関連-売買契約書": "売買契約書",
-  "PJ書類関連-重説補足資料・お知らせ": "重説補足・変更事項等確認のお知らせ",
+  "PJ書類関連-重説補足資料・お知らせ": "「重要事項説明書」補足説明",
   "PJ書類関連-重要事項説明書": "重要事項説明書",
   "PJ広告・販売-その他-その他広宣・販売センター関係": "",
   "PJ販売センター関連-MRガイド": "MRガイド",
@@ -100,14 +107,14 @@ const SmallItemMp = {
   "PJ建築関係-引渡書類（仕上一覧・業者一覧・メーカリスト等）": "引渡書類（仕上一覧・業者一覧・メーカリスト等）",
   "PJ土地・許認可関係-フラット適合証明": "フラット適合証明",
   "PJ土地・許認可関係-地積測量図": "地積測量図",
-  "PJ土地・許認可関係-付定通知書": "付定通知書",
+  "PJ土地・許認可関係-付定通知書": "付定通知",
   "PJ土地・許認可関係-公図（合筆前後）": "公図（合筆前後）",
-  "PJ土地・許認可関係-検査済書": "検査済書",
-  "PJ土地・許認可関係-建築確認済書（計画変更含む）": "建築確認済書（計画変更含む）",
+  "PJ土地・許認可関係-検査済書": "検査済証",
+  "PJ土地・許認可関係-建築確認済書（計画変更含む）": "建築確認済証（計画変更含む）",
   "PJ土地・許認可関係-建築確認申請書（計画変更含む）": "建築確認申請書（計画変更含む）",
   "PJ土地・許認可関係-納税通知書": "納税通知書",
   "PJ土地・許認可関係-求積図": "求積図",
-  "PJ土地・許認可関係-全部事項証明書": "全部事項証明書",
+  "PJ土地・許認可関係-全部事項証明書": "謄本",
   "PJ土地・許認可関係-謄本": "謄本"
 }
 
@@ -118,7 +125,7 @@ export class FleekDriveController extends BatchBaseController {
   private static PROJECT_ROOT_PATH = process.env.PROJECT_ROOT_PATH
 
   private SQL = process.env.PROJECT_SQL ? process.env.PROJECT_SQL : ""
-  private comPanySpaceId = process.env.FLEEK_DRIVER_SPACE_ID
+  private comPanySpaceId = process.env.FLEEK_COMMFOLDER_SFDCID
 
   private fleekService: FleekDriveService
 
@@ -156,28 +163,36 @@ export class FleekDriveController extends BatchBaseController {
   async executeUpload(records: Account[]) {
     const excuteList = []
     // salesforceId を取得する
-    let extidList = records.map(obj => {
-      return obj.ProjectCode
-    })
+    let extidList = []
+    for (const dbRecord of records) {
+      if (dbRecord.ProjectCode) {
+        extidList.push(dbRecord.ProjectCode)
+      } else {
+        excuteList.push(this.uploadFile(dbRecord))
+      }
+    }
     // 重複排除
     extidList = Array.from(new Set(extidList))
-    const res = await this.sfdc.query<Account>(
-      `SELECT Id,ProjectCode__c FROM Account WHERE ProjectCode__c IN ${SfdcService.getInSql(extidList)}`
-    )
-    const targetMap = new Map<string, Account>()
-    for (const resObj of res.records) {
-      targetMap.set(resObj.ProjectCode__c, resObj)
-    }
-    // レコードIDを設定
-    for (const rd of records) {
-      const targetObj = targetMap.get("" + rd.ProjectCode)
-      if (targetObj) {
-        rd.Id = targetObj.Id
-        rd.SFDCId = targetObj.Id
-        excuteList.push(this.uploadFile(rd))
-      } else {
-        rd.hasError = 1
-        rd.errorMsg = "SFDCに存在しないレコード"
+    if (extidList.length > 0) {
+      const res = await this.sfdc.query<Account>(
+        `SELECT Id,ProjectCode__c FROM Account WHERE ProjectCode__c IN ${SfdcService.getInSql(extidList)}`
+      )
+      const targetMap = new Map<string, Account>()
+      for (const resObj of res.records) {
+        targetMap.set(resObj.ProjectCode__c, resObj)
+      }
+      // レコードIDを設定
+      for (const rd of records) {
+        if (!rd.ProjectCode) continue
+        const targetObj = targetMap.get("" + rd.ProjectCode)
+        if (targetObj) {
+          rd.Id = targetObj.Id
+          rd.SFDCId = targetObj.Id
+          excuteList.push(this.uploadFile(rd))
+        } else {
+          rd.hasError = 1
+          rd.errorMsg = "SFDCに存在しないレコード"
+        }
       }
     }
 
@@ -219,20 +234,24 @@ export class FleekDriveController extends BatchBaseController {
         // ファイルの読み込み
         const filePath = FleekDriveController.PROJECT_ROOT_PATH + fileTgPath
         const filename = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
-        const isExist = await fs.existsSync(filePath)
+        const isExist = fs.existsSync(filePath)
         if (!isExist) {
           targetRecord.hasError = 1
           targetRecord.errorMsg = `[プロジェクトコード ${targetRecord.ProjectCode}]:「${filePath}」ファイルが存在しない`
           console.error(targetRecord.errorMsg)
           break
         }
-        const buffer = await fs.readFileSync(filePath)
+        const buffer = fs.readFileSync(filePath)
+        // const buffer = fs.createReadStream(filePath)
         // ファイルをSFDCにアップロード
 
         let error
+        // スリーブ時間を設定
+        await this.sleep(300)
         await this.fleekService.uploadFile(subSpaceId, filename, buffer).catch(err => {
           error = err
         })
+
         if (error) {
           targetRecord.hasError = 1
           targetRecord.errorMsg = `[プロジェクトコード ${targetRecord.ProjectCode}]:${error}`
@@ -268,6 +287,7 @@ export class FleekDriveController extends BatchBaseController {
         spacePath.push(SmallItemMp[targetRecord.SmallItem])
       }
     }
+    if (spacePath.length == 0) return
     const spaceKey = spacePath.reduce((pVal, cVal) => {
       return pVal + (cVal ? cVal : "")
     })
@@ -275,10 +295,10 @@ export class FleekDriveController extends BatchBaseController {
     // FleekDrive のスペースを検索
     let subSpaceId
     // 先ずマップから取得する
-    subSpaceId = this.spaceIdMap.get(spaceKey)
+    subSpaceId = this.spaceIdMap.get(spaceKey + targetRecord.ProjectCode)
     if (!subSpaceId) {
       subSpaceId = await this.fleekService.searchSubSpace(parentSpaceId, spacePath)
-      if (subSpaceId) this.spaceIdMap.set(spaceKey, subSpaceId)
+      if (subSpaceId) this.spaceIdMap.set(spaceKey + targetRecord.ProjectCode, subSpaceId)
     }
     if (!subSpaceId) {
       targetRecord.hasError = 1
@@ -299,5 +319,9 @@ export class FleekDriveController extends BatchBaseController {
       ${ckInfo.SFDCId ? `,SFDCId = '${ckInfo.SFDCId}'` : ""} WHERE Pid = '${ckInfo.Pid}';\n`
     }
     await this.mssql.query(updateSql)
+  }
+
+  private async sleep(ms: number) {
+    return new Promise(r => setTimeout(r, ms))
   }
 }

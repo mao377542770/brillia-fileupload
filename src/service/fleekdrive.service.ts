@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import axios from "axios"
+import FormData from "form-data"
 import request from "request"
 
 export class FleekDriveService {
@@ -253,39 +254,36 @@ export class FleekDriveService {
   }
 
   // ファイルアップロード(axios-廃止)
-  /**
-  public async uploadFile(spaceId: string, fileName: string, fileBuffer: Buffer): Promise<any> {
+  public async uploadFile2(spaceId: string, fileName: string, fileBuffer: any): Promise<any> {
     const formData = new FormData()
-    const today = new Date()
-    formData.append("filename", `${fileName}_${today.getTime()}.xlsx`)
+    formData.append("filename", fileName)
     formData.append("spaceid", spaceId)
     formData.append("checkNewVersion", "0")
-    formData.append("verUp", "")
+    formData.append("verUp", "on")
     formData.append("verUpType", "auto")
     formData.append("versionkind", "0")
     formData.append("file", fileBuffer)
 
-    let result: any
-    await axios
-      .post(this.driveConfig.fleekDriverEndpoint + "/contentsmanagement/ContentsAdd.json", formData, {
+    let result = await axios.post(
+      this.driveConfig.fleekDriverEndpoint + "/contentsmanagement/ContentsAdd.json",
+      formData,
+      {
         headers: {
           ...formData.getHeaders(),
           Cookie: this.authCookie ? this.authCookie : ""
         }
-      })
-      .then(res => {
-        result = res.data
-      })
-      .catch(error => {
-        console.error(error)
-        result = null
-      })
+      }
+    )
 
-    return new Promise<any>(resolve => {
-      resolve(result)
+    return new Promise<any>((resolve, reject) => {
+      const body = result.data
+      console.log(body)
+      if (body.error) {
+        reject(body.message)
+      }
+      resolve(body)
     })
   }
-  */
 
   // ファイルアップロード
   public async uploadFile(spaceId: string, fileName: string, fileBuffer: Buffer): Promise<any> {
@@ -302,6 +300,11 @@ export class FleekDriveService {
       const r = request.post(httpOption, (error: any, response: any, body: any) => {
         if (error) {
           reject(error)
+        }
+
+        body = JSON.parse(body)
+        if (body.error) {
+          reject(body.message)
         }
 
         resolve({
