@@ -8,6 +8,7 @@ export interface Account {
   ProjectCode: string
   ProjectCode__c: string
   File: string
+  FileName: string
   SFDCId: string
   errorMsg: string
   hasError: 0 | 1 | undefined

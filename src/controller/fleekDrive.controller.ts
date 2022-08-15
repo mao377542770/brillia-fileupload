@@ -233,7 +233,6 @@ export class FleekDriveController extends BatchBaseController {
         if (!fileTgPath) continue
         // ファイルの読み込み
         const filePath = FleekDriveController.PROJECT_ROOT_PATH + fileTgPath
-        const filename = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
         const isExist = fs.existsSync(filePath)
         if (!isExist) {
           targetRecord.hasError = 1
@@ -248,7 +247,7 @@ export class FleekDriveController extends BatchBaseController {
         let error
         // スリーブ時間を設定
         await this.sleep(300)
-        await this.fleekService.uploadFile(subSpaceId, filename, buffer).catch(err => {
+        await this.fleekService.uploadFile(subSpaceId, targetRecord.FileName, buffer).catch(err => {
           error = err
         })
 
