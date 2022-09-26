@@ -161,14 +161,13 @@ export class FleekDriveController extends BatchBaseController {
   }
 
   async executeUpload(records: Account[]) {
-    const excuteList = []
     // salesforceId を取得する
     let extidList = []
-    for (const dbRecord of records) {
+    for await (const dbRecord of records) {
       if (dbRecord.ProjectCode) {
         extidList.push(dbRecord.ProjectCode)
       } else {
-        excuteList.push(this.uploadFile(dbRecord))
+        await this.uploadFile(dbRecord)
       }
     }
     // 重複排除
@@ -182,21 +181,19 @@ export class FleekDriveController extends BatchBaseController {
         targetMap.set(resObj.ProjectCode__c, resObj)
       }
       // レコードIDを設定
-      for (const rd of records) {
+      for await (const rd of records) {
         if (!rd.ProjectCode) continue
         const targetObj = targetMap.get("" + rd.ProjectCode)
         if (targetObj) {
           rd.Id = targetObj.Id
           rd.SFDCId = targetObj.Id
-          excuteList.push(this.uploadFile(rd))
+          await this.uploadFile(rd)
         } else {
           rd.hasError = 1
           rd.errorMsg = "SFDCに存在しないレコード"
         }
       }
     }
-
-    await Promise.all(excuteList)
 
     // アップデート結果をDBに反映する
     await this.feedBackToDB(records)
@@ -233,6 +230,9 @@ export class FleekDriveController extends BatchBaseController {
         if (!fileTgPath) continue
         // ファイルの読み込み
         const filePath = FleekDriveController.PROJECT_ROOT_PATH + fileTgPath
+        const filename = targetRecord.FileName
+          ? targetRecord.FileName
+          : filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
         const isExist = fs.existsSync(filePath)
         if (!isExist) {
           targetRecord.hasError = 1
@@ -245,9 +245,7 @@ export class FleekDriveController extends BatchBaseController {
         // ファイルをSFDCにアップロード
 
         let error
-        // スリーブ時間を設定
-        await this.sleep(300)
-        await this.fleekService.uploadFile(subSpaceId, targetRecord.FileName, buffer).catch(err => {
+        await this.fleekService.uploadFile(subSpaceId, filename, buffer).catch(err => {
           error = err
         })
 
