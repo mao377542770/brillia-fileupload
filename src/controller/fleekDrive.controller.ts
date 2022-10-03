@@ -173,24 +173,39 @@ export class FleekDriveController extends BatchBaseController {
     // 重複排除
     extidList = Array.from(new Set(extidList))
     if (extidList.length > 0) {
-      const res = await this.sfdc.query<Account>(
-        `SELECT Id,ProjectCode__c FROM Account WHERE ProjectCode__c IN ${SfdcService.getInSql(extidList)}`
-      )
+      let queryError
+      const res = await this.sfdc
+        .query<Account>(
+          `SELECT Id,ProjectCode__c FROM Account WHERE ProjectCode__c IN ${SfdcService.getInSql(extidList)}`
+        )
+        .catch(err => {
+          console.error(err)
+          queryError = err
+        })
+
       const targetMap = new Map<string, Account>()
-      for (const resObj of res.records) {
-        targetMap.set(resObj.ProjectCode__c, resObj)
-      }
-      // レコードIDを設定
-      for await (const rd of records) {
-        if (!rd.ProjectCode) continue
-        const targetObj = targetMap.get("" + rd.ProjectCode)
-        if (targetObj) {
-          rd.Id = targetObj.Id
-          rd.SFDCId = targetObj.Id
-          await this.uploadFile(rd)
-        } else {
+      if (res && !queryError) {
+        for (const resObj of res.records) {
+          targetMap.set(resObj.ProjectCode__c, resObj)
+        }
+        // レコードIDを設定
+        for await (const rd of records) {
+          if (!rd.ProjectCode) continue
+          const targetObj = targetMap.get("" + rd.ProjectCode)
+          if (targetObj) {
+            rd.Id = targetObj.Id
+            rd.SFDCId = targetObj.Id
+            await this.uploadFile(rd)
+          } else {
+            rd.hasError = 1
+            rd.errorMsg = "SFDCに存在しないレコード"
+          }
+        }
+      } else {
+        for (const rd of records) {
+          if (!rd.ProjectCode) continue
           rd.hasError = 1
-          rd.errorMsg = "SFDCに存在しないレコード"
+          rd.errorMsg = `[予期せずエラー]:${queryError}`
         }
       }
     }
@@ -222,6 +237,7 @@ export class FleekDriveController extends BatchBaseController {
     // 移行対象のスペースIdを取得する
     const subSpaceId = await this.getSpaceIdByMapping(targetRecord, parentSpaceId)
     if (!subSpaceId) {
+      console.log(targetRecord)
       return
     }
 

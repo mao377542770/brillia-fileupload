@@ -56,11 +56,11 @@ export class SfdcService {
       await this.login()
     }
     console.log("[REST SOQL]:" + query)
-    const promise = new Promise<QueryResult<T>>(resolve => {
+    const promise = new Promise<QueryResult<T>>((resolve, reject) => {
       SfdcService.conn.query<T>(query, undefined, (_err, _result) => {
         if (_err) {
           console.error(_err)
-          throw _err
+          reject(_err)
         }
         console.log("total : " + _result.totalSize)
         console.log("fetched : " + _result.records.length)
