@@ -42,7 +42,7 @@ export default class App {
         console.log("===FleekDriveファイル移行開始===")
         await new FleekDriveController().runBatch()
       } else {
-        await new testController().createTestFile3()
+        await new testController().createTestFile4()
       }
       rl.close()
     })

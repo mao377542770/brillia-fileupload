@@ -132,4 +132,42 @@ export class testController {
       await Promise.all(promiseList)
     }
   }
+
+
+  async createTestFile4() {
+    const root = "C:\\SalesforceWorkSpace\\brillia_data\\eBrilliaFile\\"
+
+    const fileList = [
+      '248\\142248\\9a509575-73ee-4ecd-8645-f4b08071d079.pdf',
+      '249\\142249\\8a963479-f126-4b96-a3be-c56f04275d3b.pdf',
+      '250\\142250\\dc5b68a1-ca19-4f0a-a01e-4c56888f3661.pdf',
+      '251\\142251\\f8eacce4-294f-4919-8414-10143547c1c3.pdf',
+      '254\\142254\\7cc883a7-0aa7-46e6-8dc8-0dd5a0f9c0ae.pdf',
+      '260\\142260\\4245b024-5a60-4a8c-afb9-db949b5f4919.pdf',
+      '261\\142261\\8b38295f-6f55-4e56-b47e-500249a10ee3.pdf',
+      '262\\142262\\0b94bede-8f1e-491e-853e-f25e6c5e5017.pdf',
+      '265\\142265\\49feee5d-4a31-4ec6-b98a-1a87fc088c9f.pdf',
+      '266\\142266\\469f5092-8971-487b-8705-31141a9528f7.pdf'
+    ]
+
+    const promiseList = []
+    for (const fileStr of fileList) {
+      const subStart = fileStr.lastIndexOf("\\")
+      const folderPath = fileStr.substring(0, subStart)
+
+      console.log(folderPath)
+
+      promiseList.push(
+        fs.mkdir(root + folderPath, { recursive: true }, err => {
+          if (err) {
+            console.log(err)
+          }
+          // ファイル作成
+          fs.writeFileSync(root + fileStr, "test")
+        })
+      )
+
+      await Promise.all(promiseList)
+    }
+  }
 }

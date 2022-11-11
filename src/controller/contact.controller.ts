@@ -137,6 +137,7 @@ export class ContactController extends BatchBaseController {
 
     if (filesStr.length > 0) {
       let str = filesStr.replaceAll('"', "")
+      str = filesStr.replaceAll(',', "")
       // 先ず「?/」を[?\]に変更
       let fileStr = str.replaceAll("?/", "?\\")
       const fileList = fileStr.split("?\\")

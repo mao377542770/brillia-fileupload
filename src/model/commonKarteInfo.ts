@@ -12,6 +12,11 @@ export interface CommonKarteInfo {
   file4: string
   file5: string
   files: string
+  file1Name: string
+  file2Name: string
+  file3Name: string
+  file4Name: string
+  file5Name: string
   errorMsg: string
   hasError: 0 | 1 | undefined
 }
