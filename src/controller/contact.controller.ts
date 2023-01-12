@@ -137,7 +137,6 @@ export class ContactController extends BatchBaseController {
 
     if (filesStr.length > 0) {
       let str = filesStr.replaceAll('"', "")
-      str = filesStr.replaceAll(',', "")
       // 先ず「?/」を[?\]に変更
       let fileStr = str.replaceAll("?/", "?\\")
       const fileList = fileStr.split("?\\")
@@ -149,51 +148,54 @@ export class ContactController extends BatchBaseController {
         if (!fileTgPath) continue
         // ファイルの読み込み
         const filePath = ContactController.CONTACT_ROOT_PATH + fileTgPath
-        const filename = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.length)
         const isExist = await fs.existsSync(filePath)
         if (!isExist) {
           targetRecord.hasError = 1
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:「${filePath}」ファイルが存在しない`
-          console.error(targetRecord.errorMsg)
-          break
-        }
-        const buffer = await fs.readFileSync(filePath)
-        // ファイルをSFDCにアップロード
-        const contentVersion = {
-          Title: filename,
-          PathOnClient: filename
-        }
-
-        let error
-        const uploadRes = await this.sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
-          error = err
-          console.error(err)
-        })
-
-        if (!uploadRes || !uploadRes.success || error) {
-          targetRecord.hasError = 1
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
-          console.error(uploadRes)
+          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:「${filePath}」フォルダーが存在しない`
           console.error(targetRecord.errorMsg)
           break
         }
 
-        let linkRes
-        let ShareType
-        if (targetRecord.isMail) {
-          ShareType = "V"
-        }
-        linkRes = await this.sfdc.linkFileToObj(uploadRes.id, targetRecord.Id, ShareType).catch(err => {
-          error = err
-          console.error(err)
-        })
+        const filePathList = fs.readdirSync(filePath)
+        for await (const filename of filePathList) {
+          const buffer = fs.readFileSync(filePath + "\\" + filename)
+          // ファイルをSFDCにアップロード
+          const contentVersion = {
+            Title: filename,
+            PathOnClient: filename
+          }
 
-        if (!linkRes || !linkRes.success || error) {
-          targetRecord.hasError = 1
-          targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
-          console.error(uploadRes)
-          console.error(targetRecord.errorMsg)
-          break
+          let error
+          const uploadRes = await this.sfdc.uploadContentVersion(contentVersion, buffer).catch(err => {
+            error = err
+            console.error(err)
+          })
+
+          if (!uploadRes || !uploadRes.success || error) {
+            targetRecord.hasError = 1
+            targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
+            console.error(uploadRes)
+            console.error(targetRecord.errorMsg)
+            break
+          }
+
+          let linkRes
+          let ShareType
+          if (targetRecord.isMail) {
+            ShareType = "V"
+          }
+          linkRes = await this.sfdc.linkFileToObj(uploadRes.id, targetRecord.Id, ShareType).catch(err => {
+            error = err
+            console.error(err)
+          })
+
+          if (!linkRes || !linkRes.success || error) {
+            targetRecord.hasError = 1
+            targetRecord.errorMsg = `[コンタクト番号 ${targetRecord.ContactNo__c}]:ファイルアップロード失敗:\n${error}`
+            console.error(uploadRes)
+            console.error(targetRecord.errorMsg)
+            break
+          }
         }
       }
     }
@@ -218,7 +220,7 @@ export class ContactController extends BatchBaseController {
       }
       updateSql += `UPDATE Contact SET hasError = ${ckInfo.hasError}${
         ckInfo.errorMsg ? `,errorMsg = '${ckInfo.errorMsg}'` : ""
-      }${ckInfo.SFDCId ? `,SFDCId = '${ckInfo.SFDCId}'` : ""} WHERE ContactNo__c = '${ckInfo.ContactNo__c}';\n`
+      }${ckInfo.SFDCId ? `,SFDCId = '${ckInfo.SFDCId}'` : ""} WHERE No__c = '${ckInfo.No__c}';\n`
     }
     await this.mssql.query(updateSql)
   }

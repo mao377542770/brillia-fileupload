@@ -1,5 +1,6 @@
 export interface Contact {
   [key: string]: any
+  No__c: string
   Id: string
   SFDCId: string
   ContactNo__c: string
